@@ -214,14 +214,33 @@ const getproducts = async function (req, res) {
         let size = filter.size
         let priceGreaterThan = filter.priceGreaterThan
         let priceLessThan = filter.priceLessThan
+        let priceSort = filter.priceSort
 
+        if(!validator.isValidDetails(filter)){
+            let allproducts=await productModel.find({ filter,isDeleted:false })
+            return res.status(200).send({ msg: "All products", data: allproducts })  
+        }
 
+        if (validator.isValidValue(priceSort)) {
+
+            if (!((priceSort == 1) || (priceSort == -1))) {
+                return res.status(400).send({ status: false, message: `priceSort should be 1 or -1 ` })
+            }
+
+            const products = await productModel.find({filter,isDeleted:false}).sort({ price: priceSort })
+
+            if (Array.isArray(products) && products.length === 0) {
+                return res.status(404).send({ statuproductss: false, message: 'No Product found' })
+            }
+
+            return res.status(200).send({ status: true, message: 'Product list', data: products })
+        }
+    
 
         if (Name) {
             if (!(validator.isValidValue(Name)))
 
                 return res.status(400).send({ msg: "please give valid input" })
-                
             const product = await productModel.find({ title: Name, isDeleted: false })
             if (product.length == 0) return res.status(404).send({ msg: "product not found" })
 
@@ -281,6 +300,9 @@ const getproducts = async function (req, res) {
 
 
 }
+
+
+module.exports.getproducts = getproducts
 
 
 module.exports.getproducts = getproducts
